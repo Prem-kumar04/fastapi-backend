@@ -47,4 +47,4 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
     app.dependency_overrides.clear()
 
     # Close all connections before disposing the engine.
-    await engine.dispose(close=True)
+    await engine.dispose()
