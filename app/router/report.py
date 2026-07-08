@@ -1,0 +1,98 @@
+from typing import Annotated, Any
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.auth import get_current_user
+from app.core.database import get_db
+from app.schema.report import ReportCreate, ReportResponse
+from app.services import report as report_service
+
+router = APIRouter(
+    prefix="/api/reports",
+    tags=["reports"],
+)
+
+
+@router.get("/", response_model=list[ReportResponse])
+async def get_reports(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> list[ReportResponse]:
+    reports = await report_service.get_reports(db)
+    return [ReportResponse.model_validate(report) for report in reports]
+
+
+@router.post("/", response_model=ReportResponse)
+async def create_report(
+    payload: ReportCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> ReportResponse:
+    report = await report_service.create_report(payload, db)
+    return ReportResponse.model_validate(report)
+
+
+@router.get("/search", response_model=list[ReportResponse])
+async def search_reports(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: dict[str, Any] = Depends(get_current_user),
+    keyword: str = Query(...),
+) -> list[ReportResponse]:
+    reports = await report_service.search_reports(keyword, db)
+    return [ReportResponse.model_validate(report) for report in reports]
+
+
+@router.get("/export")
+async def export_reports(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> JSONResponse:
+    reports = await report_service.get_reports(db)
+
+    data = [
+        {
+            "id": report.id,
+            "title": report.title,
+            "description": report.description,
+        }
+        for report in reports
+    ]
+
+    return JSONResponse(content={"reports": data})
+
+
+@router.put("/{report_id}", response_model=ReportResponse)
+async def update_report(
+    report_id: int,
+    payload: ReportCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> ReportResponse:
+    report = await report_service.update_report(report_id, payload, db)
+
+    if report is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Report not found",
+        )
+
+    return ReportResponse.model_validate(report)
+
+
+@router.delete("/{report_id}")
+async def delete_report(
+    report_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, str]:
+    result = await report_service.delete_report(report_id, db)
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Report not found",
+        )
+
+    return result

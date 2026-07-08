@@ -1,0 +1,55 @@
+repos:
+  # -------------------------------
+  # Ruff (Linting + Auto Fix)
+  # -------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
+      - id: ruff
+        args:
+          - --fix
+
+  # -------------------------------
+  # MyPy (Static Type Checking)
+  # -------------------------------
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.1.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - pydantic
+          - pydantic-settings
+          - sqlalchemy
+          - types-requests
+        args:
+          - --pretty
+          - --show-error-codes
+
+  # -------------------------------
+  # Bandit (Security Scanner)
+  # -------------------------------
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.4
+    hooks:
+      - id: bandit
+        args:
+          - -r
+          - app
+          - -c
+          - bandit.yml
+        pass_filenames: false
+
+  # -------------------------------
+  # Pytest (Unit Tests)
+  # -------------------------------
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run Pytest
+        entry: pytest
+        language: system
+        args:
+          - tests
+          - -v
+        pass_filenames: false
+        types: [python]
