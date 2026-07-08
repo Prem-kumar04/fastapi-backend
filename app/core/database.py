@@ -17,6 +17,10 @@ from sqlalchemy.orm import declarative_base
 # Define the base for declarative models
 Base = declarative_base()
 
+DATABASE_MANAGER_NOT_INITIALIZED = (
+    "DatabaseSessionManager is not initialized"
+)
+
 
 class DBSettings(BaseSettings):
     db_name: str = ""
@@ -27,12 +31,15 @@ class DBSettings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        extra="ignore"
+        extra="ignore",
     )
 
     @property
     def db_url(self) -> str:
-        return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+        return (
+            f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
 
 
 _DBSettings = DBSettings()
@@ -55,15 +62,21 @@ class DatabaseSessionManager:
     def __init__(self) -> None:
         # Create the SQLAlchemy engine
         self.engine: AsyncEngine | None = engine
+
         # Create a SessionLocal class
-        self._sessionmaker: async_sessionmaker[AsyncSession] | None = async_sessionmaker(
-            autocommit=False, class_=AsyncSession, autoflush=False, bind=self.engine
+        self._sessionmaker: async_sessionmaker[AsyncSession] | None = (
+            async_sessionmaker(
+                autocommit=False,
+                class_=AsyncSession,
+                autoflush=False,
+                bind=self.engine,
+            )
         )
 
     async def close(self) -> None:
         if self.engine is None:
-            msg = "DatabaseSessionManager is not initialized"
-            raise Exception(msg)
+            raise RuntimeError(DATABASE_MANAGER_NOT_INITIALIZED)
+
         await self.engine.dispose()
 
         self.engine = None
@@ -73,8 +86,7 @@ class DatabaseSessionManager:
     @contextlib.asynccontextmanager
     async def connect(self) -> AsyncIterator[AsyncConnection]:
         if self.engine is None:
-            msg = "DatabaseSessionManager is not initialized"
-            raise Exception(msg)
+            raise RuntimeError(DATABASE_MANAGER_NOT_INITIALIZED)
 
         async with self.engine.begin() as connection:
             try:
@@ -90,10 +102,10 @@ class DatabaseSessionManager:
     @contextlib.asynccontextmanager
     async def session(self) -> AsyncIterator[AsyncSession]:
         if self._sessionmaker is None:
-            msg = "DatabaseSessionManager is not initialized"
-            raise Exception(msg)
+            raise RuntimeError(DATABASE_MANAGER_NOT_INITIALIZED)
 
         session = self._sessionmaker()
+
         try:
             logger.info("Database Connection established!")
             yield session
