@@ -2,6 +2,15 @@ import logging
 
 from loguru import logger as _log
 
+LOG_ROTATION = "1 day"
+LOG_COMPRESSION = "zip"
+LOG_FORMAT = (
+    "{time:YYYY-MM-DD HH:mm:ss} | "
+    "{level} | "
+    "{module}:{function}:{line} | "
+    "{message}"
+)
+
 
 def setup_logger(with_debug: bool = False) -> None:
     log_path = "data/logs"
@@ -9,73 +18,77 @@ def setup_logger(with_debug: bool = False) -> None:
     # App Info Log
     _log.add(
         f"{log_path}/app.log",
-        rotation="1 day",
-        compression="zip",
-        filter=lambda record: record["extra"].get("context") not in {"system", "comm", "trade"},
+        rotation=LOG_ROTATION,
+        compression=LOG_COMPRESSION,
+        filter=lambda record: record["extra"].get("context")
+        not in {"system", "comm", "trade"},
         level="INFO",
     )
 
     # App Error logs
     _log.add(
         f"{log_path}/error.log",
-        rotation="1 day",
-        compression="zip",
-        filter=lambda record: record["extra"].get("context") not in {"system", "comm", "trade"}
-        and record["level"].name in {"ERROR", "CRITICAL"},
+        rotation=LOG_ROTATION,
+        compression=LOG_COMPRESSION,
+        filter=lambda record: (
+            record["extra"].get("context")
+            not in {"system", "comm", "trade"}
+            and record["level"].name in {"ERROR", "CRITICAL"}
+        ),
         level="DEBUG" if with_debug else "ERROR",
     )
 
-    # System logs (system)
+    # System logs
     _log.add(
         f"{log_path}/system.log",
-        rotation="1 day",
-        compression="zip",
+        rotation=LOG_ROTATION,
+        compression=LOG_COMPRESSION,
         level="DEBUG" if with_debug else "INFO",
         filter=lambda record: record["extra"].get("context") == "system",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {module}:{function}:{line} | {message}",
+        format=LOG_FORMAT,
     )
 
-    # Communication logs (communication)
+    # Communication logs
     _log.add(
         f"{log_path}/comm.log",
-        rotation="1 day",
-        compression="zip",
+        rotation=LOG_ROTATION,
+        compression=LOG_COMPRESSION,
         level="DEBUG" if with_debug else "INFO",
         filter=lambda record: record["extra"].get("context") == "comm",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {module}:{function}:{line} | {message}",
+        format=LOG_FORMAT,
     )
 
-    # Background Job logs (communication)
+    # Background Job logs
     _log.add(
         f"{log_path}/job.log",
-        rotation="1 day",
-        compression="zip",
+        rotation=LOG_ROTATION,
+        compression=LOG_COMPRESSION,
         level="DEBUG" if with_debug else "INFO",
         filter=lambda record: record["extra"].get("context") == "job",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {module}:{function}:{line} | {message}",
+        format=LOG_FORMAT,
     )
 
-    # Background Job logs (communication)
+    # External logs
     _log.add(
         f"{log_path}/external.log",
-        rotation="1 day",
-        compression="zip",
+        rotation=LOG_ROTATION,
+        compression=LOG_COMPRESSION,
         level="DEBUG" if with_debug else "INFO",
         filter=lambda record: record["extra"].get("context") == "external",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {module}:{function}:{line} | {message}",
+        format=LOG_FORMAT,
     )
 
 
-# slogger is for System Logger
+# System Logger
 slogger = _log.bind(context="system")
 
-# clogger is for Communication Logger
+# Communication Logger
 clogger = _log.bind(context="comm")
 
-# clogger is for Communication Logger
+# Job Logger
 jlogger = _log.bind(context="job")
 
-# clogger is for Communication Logger
+# External Logger
 elogger = _log.bind(context="external")
 
 # Generic Logger
@@ -84,8 +97,14 @@ logger = _log
 
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
-        logger_opt = logger.opt(depth=6, exception=record.exc_info if record.exc_info else None)
+        logger_opt = logger.opt(
+            depth=6,
+            exception=record.exc_info if record.exc_info else None,
+        )
         logger_opt.log(record.levelname, record.getMessage())
 
 
-logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
+logging.basicConfig(
+    handlers=[InterceptHandler()],
+    level=logging.INFO,
+)
