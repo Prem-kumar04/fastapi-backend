@@ -39,7 +39,15 @@ async def get_tasks(
     return [TaskResponse.model_validate(task) for task in tasks]
 
 
-@router.get("/{task_id}", response_model=TaskResponse)
+@router.get(
+    "/{task_id}",
+    response_model=TaskResponse,
+    responses={
+        404: {
+            "description": "Task not found",
+        },
+    },
+)
 async def get_task_by_id(
     task_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -59,7 +67,15 @@ async def get_task_by_id(
     return TaskResponse.model_validate(task)
 
 
-@router.put("/{task_id}", response_model=TaskResponse)
+@router.put(
+    "/{task_id}",
+    response_model=TaskResponse,
+    responses={
+        404: {
+            "description": "Task not found",
+        },
+    },
+)
 async def update_task(
     task_id: int,
     payload: TaskUpdate,
@@ -86,7 +102,14 @@ async def update_task(
     return TaskResponse.model_validate(updated_task)
 
 
-@router.delete("/{task_id}")
+@router.delete(
+    "/{task_id}",
+    responses={
+        404: {
+            "description": "Task not found",
+        },
+    },
+)
 async def delete_task(
     task_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],

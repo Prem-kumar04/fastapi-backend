@@ -33,7 +33,15 @@ async def create_role(
     return RoleResponse.model_validate(role)
 
 
-@router.put("/{role_id}", response_model=RoleResponse)
+@router.put(
+    "/{role_id}",
+    response_model=RoleResponse,
+    responses={
+        404: {
+            "description": "Role not found",
+        },
+    },
+)
 async def update_role(
     role_id: int,
     payload: RoleUpdate,
@@ -52,7 +60,14 @@ async def update_role(
     return RoleResponse.model_validate(updated_role)
 
 
-@router.delete("/{role_id}")
+@router.delete(
+    "/{role_id}",
+    responses={
+        404: {
+            "description": "Role not found",
+        },
+    },
+)
 async def delete_role(
     role_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],

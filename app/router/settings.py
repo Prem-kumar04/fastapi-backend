@@ -43,7 +43,15 @@ async def create_settings(
     return SettingsResponse.model_validate(settings)
 
 
-@router.put("/", response_model=SettingsResponse)
+@router.put(
+    "/",
+    response_model=SettingsResponse,
+    responses={
+        404: {
+            "description": "Settings not found",
+        },
+    },
+)
 async def update_settings(
     payload: SettingsCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -59,6 +67,10 @@ async def update_settings(
             detail="Settings not found",
         )
 
-    updated_settings = await settings_service.update_settings(settings, payload, db)
+    updated_settings = await settings_service.update_settings(
+        settings,
+        payload,
+        db,
+    )
 
     return SettingsResponse.model_validate(updated_settings)
