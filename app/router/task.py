@@ -8,6 +8,8 @@ from app.core.database import get_db
 from app.schema.task import TaskCreate, TaskResponse, TaskUpdate
 from app.services import task as task_service
 
+TASK_NOT_FOUND = "Task not found"
+
 router = APIRouter(
     prefix="/api/tasks",
     tags=["tasks"],
@@ -44,7 +46,7 @@ async def get_tasks(
     response_model=TaskResponse,
     responses={
         404: {
-            "description": "Task not found",
+            "description": TASK_NOT_FOUND,
         },
     },
 )
@@ -61,7 +63,7 @@ async def get_task_by_id(
     if task is None:
         raise HTTPException(
             status_code=404,
-            detail="Task not found",
+            detail=TASK_NOT_FOUND,
         )
 
     return TaskResponse.model_validate(task)
@@ -72,7 +74,7 @@ async def get_task_by_id(
     response_model=TaskResponse,
     responses={
         404: {
-            "description": "Task not found",
+            "description": TASK_NOT_FOUND,
         },
     },
 )
@@ -90,7 +92,7 @@ async def update_task(
     if task is None:
         raise HTTPException(
             status_code=404,
-            detail="Task not found",
+            detail=TASK_NOT_FOUND,
         )
 
     updated_task = await task_service.update_task(
@@ -106,7 +108,7 @@ async def update_task(
     "/{task_id}",
     responses={
         404: {
-            "description": "Task not found",
+            "description": TASK_NOT_FOUND,
         },
     },
 )
@@ -125,7 +127,7 @@ async def delete_task(
     if task is None:
         raise HTTPException(
             status_code=404,
-            detail="Task not found",
+            detail=TASK_NOT_FOUND,
         )
 
     return await task_service.delete_task(
