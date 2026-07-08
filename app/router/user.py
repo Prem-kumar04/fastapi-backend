@@ -11,13 +11,25 @@ from app.schema.auth import LoginRequest, SignupRequest
 from app.schema.user import UserCreate
 from app.services import user as user_service
 
+ROLE_NOT_FOUND = "Role not found"
+INVALID_CREDENTIALS = "Invalid credentials"
+INVALID_REFRESH_TOKEN = "Invalid refresh token"  # nosec B105
+INVALID_TOKEN_TYPE = "Invalid token type"  # nosec B105
+
 router = APIRouter(
     prefix="/api/auth",
     tags=["auth"],
 )
 
 
-@router.post("/signup")
+@router.post(
+    "/signup",
+    responses={
+        404: {
+            "description": ROLE_NOT_FOUND,
+        },
+    },
+)
 async def signup(
     payload: SignupRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -30,7 +42,7 @@ async def signup(
     if role is None:
         raise HTTPException(
             status_code=404,
-            detail="Role not found",
+            detail=ROLE_NOT_FOUND,
         )
 
     user = UserCreate(
@@ -46,7 +58,14 @@ async def signup(
     return await user_service.create_user(user, db)
 
 
-@router.post("/login")
+@router.post(
+    "/login",
+    responses={
+        401: {
+            "description": INVALID_CREDENTIALS,
+        },
+    },
+)
 async def login(
     payload: LoginRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -59,13 +78,13 @@ async def login(
     if user is None:
         raise HTTPException(
             status_code=401,
-            detail="Invalid credentials",
+            detail=INVALID_CREDENTIALS,
         )
 
     if user.password != payload.password:
         raise HTTPException(
             status_code=401,
-            detail="Invalid credentials",
+            detail=INVALID_CREDENTIALS,
         )
 
     role_result = await db.execute(
@@ -100,7 +119,14 @@ async def login(
     }
 
 
-@router.post("/refresh")
+@router.post(
+    "/refresh",
+    responses={
+        401: {
+            "description": "Unauthorized",
+        },
+    },
+)
 async def refresh_token(
     payload: dict[str, str],
 ) -> dict[str, str]:
@@ -111,13 +137,13 @@ async def refresh_token(
     if token_data is None:
         raise HTTPException(
             status_code=401,
-            detail="Invalid refresh token",
+            detail=INVALID_REFRESH_TOKEN,
         )
 
     if token_data.get("token_type") != "refresh":
         raise HTTPException(
             status_code=401,
-            detail="Invalid token type",
+            detail=INVALID_TOKEN_TYPE,
         )
 
     access_token = create_access_token(
