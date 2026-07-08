@@ -63,7 +63,15 @@ async def export_reports(
     return JSONResponse(content={"reports": data})
 
 
-@router.put("/{report_id}", response_model=ReportResponse)
+@router.put(
+    "/{report_id}",
+    response_model=ReportResponse,
+    responses={
+        404: {
+            "description": "Report not found",
+        },
+    },
+)
 async def update_report(
     report_id: int,
     payload: ReportCreate,
@@ -81,7 +89,14 @@ async def update_report(
     return ReportResponse.model_validate(report)
 
 
-@router.delete("/{report_id}")
+@router.delete(
+    "/{report_id}",
+    responses={
+        404: {
+            "description": "Report not found",
+        },
+    },
+)
 async def delete_report(
     report_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
