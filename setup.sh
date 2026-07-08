@@ -3,12 +3,13 @@
 # To Run, you should have GIT setup and configured the following:
 # 1. git config --global user.email "you@example.com"
 # 2. git config --global user.name "Your Name"
-# Get user input for your name and email address
-echo "Setup Initated: GIT"
-# collect git username and email to new variables
 
+echo "Setup Initiated: GIT"
+
+# Collect git username and email
 echo "Your Name:"
 read desired_name
+
 echo "Your Email:"
 read desired_email
 
@@ -18,10 +19,11 @@ current_email=$(git config --get user.email)
 
 # Function to update Git configuration
 update_git_config() {
-    echo "configuring..."
+    echo "Configuring..."
     git config user.name "$desired_name"
     git config user.email "$desired_email"
     echo "Updated"
+    return 0
 }
 
 # Check if Git name matches the desired name
@@ -33,7 +35,6 @@ fi
 if [[ "$current_email" != "$desired_email" ]]; then
     update_git_config
 fi
-
 
 pre-commit install
 
