@@ -40,7 +40,7 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
-        base_url="http://test",
+        base_url="https://test",
     ) as client_instance:
         yield client_instance
 

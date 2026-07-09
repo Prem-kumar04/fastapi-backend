@@ -18,7 +18,10 @@ router = APIRouter(
 @router.get("/", response_model=None)
 async def get_modules(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+    dict[str, Any],
+    Depends(get_current_user),
+],
 ) -> list[Module]:
     require_admin_or_super_admin(current_user)
 
