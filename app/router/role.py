@@ -8,26 +8,34 @@ from app.core.database import get_db
 from app.schema.role import RoleCreate, RoleResponse, RoleUpdate
 from app.services import role as role_service
 
+ROLE_NOT_FOUND = "Role not found"
+
 router = APIRouter(
     prefix="/api/roles",
     tags=["roles"],
 )
 
 
-@router.get("/", response_model=list[RoleResponse])
+@router.get("/")
 async def get_roles(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> list[RoleResponse]:
     roles = await role_service.get_roles(db)
     return [RoleResponse.model_validate(role) for role in roles]
 
 
-@router.post("/", response_model=RoleResponse)
+@router.post("/")
 async def create_role(
     payload: RoleCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> RoleResponse:
     role = await role_service.create_role(payload, db)
     return RoleResponse.model_validate(role)
@@ -35,10 +43,9 @@ async def create_role(
 
 @router.put(
     "/{role_id}",
-    response_model=RoleResponse,
     responses={
         404: {
-            "description": "Role not found",
+            "description": ROLE_NOT_FOUND,
         },
     },
 )
@@ -46,17 +53,25 @@ async def update_role(
     role_id: int,
     payload: RoleUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> RoleResponse:
     role = await role_service.get_role_by_id(role_id, db)
 
     if role is None:
         raise HTTPException(
             status_code=404,
-            detail="Role not found",
+            detail=ROLE_NOT_FOUND,
         )
 
-    updated_role = await role_service.update_role(role, payload, db)
+    updated_role = await role_service.update_role(
+        role,
+        payload,
+        db,
+    )
+
     return RoleResponse.model_validate(updated_role)
 
 
@@ -64,21 +79,27 @@ async def update_role(
     "/{role_id}",
     responses={
         404: {
-            "description": "Role not found",
+            "description": ROLE_NOT_FOUND,
         },
     },
 )
 async def delete_role(
     role_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> dict[str, str]:
     role = await role_service.get_role_by_id(role_id, db)
 
     if role is None:
         raise HTTPException(
             status_code=404,
-            detail="Role not found",
+            detail=ROLE_NOT_FOUND,
         )
 
-    return await role_service.delete_role(role, db)
+    return await role_service.delete_role(
+        role,
+        db,
+    )
