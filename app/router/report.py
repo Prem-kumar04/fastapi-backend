@@ -9,6 +9,8 @@ from app.core.database import get_db
 from app.schema.report import ReportCreate, ReportResponse
 from app.services import report as report_service
 
+REPORT_NOT_FOUND = "Report not found"
+
 router = APIRouter(
     prefix="/api/reports",
     tags=["reports"],
@@ -47,7 +49,13 @@ async def search_reports(
         dict[str, Any],
         Depends(get_current_user),
     ],
-    keyword: str = Query(...),
+    keyword: Annotated[
+        str,
+        Query(
+            ...,
+            description="Keyword to search reports",
+        ),
+    ],
 ) -> list[ReportResponse]:
     reports = await report_service.search_reports(keyword, db)
     return [ReportResponse.model_validate(report) for report in reports]
@@ -79,7 +87,7 @@ async def export_reports(
     "/{report_id}",
     responses={
         404: {
-            "description": "Report not found",
+            "description": REPORT_NOT_FOUND,
         },
     },
 )
@@ -97,7 +105,7 @@ async def update_report(
     if report is None:
         raise HTTPException(
             status_code=404,
-            detail="Report not found",
+            detail=REPORT_NOT_FOUND,
         )
 
     return ReportResponse.model_validate(report)
@@ -107,7 +115,7 @@ async def update_report(
     "/{report_id}",
     responses={
         404: {
-            "description": "Report not found",
+            "description": REPORT_NOT_FOUND,
         },
     },
 )
@@ -124,7 +132,7 @@ async def delete_report(
     if result is None:
         raise HTTPException(
             status_code=404,
-            detail="Report not found",
+            detail=REPORT_NOT_FOUND,
         )
 
     return result
