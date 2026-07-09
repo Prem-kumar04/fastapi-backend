@@ -20,7 +20,10 @@ router = APIRouter(
 async def save_permissions(
     payload: RolePermissionCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> dict[str, str]:
     require_super_admin(current_user)
 
@@ -34,7 +37,10 @@ async def save_permissions(
 async def get_permissions(
     role_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> list[RolePermission]:
     require_super_admin(current_user)
 
