@@ -14,11 +14,16 @@ router = APIRouter(
     tags=["settings"],
 )
 
+SETTINGS_NOT_FOUND = "Settings not found"
 
-@router.get("/", response_model=SettingsResponse | None)
+
+@router.get("/")
 async def get_settings(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> SettingsResponse | None:
     require_super_admin(current_user)
 
@@ -30,11 +35,14 @@ async def get_settings(
     return SettingsResponse.model_validate(settings)
 
 
-@router.post("/", response_model=SettingsResponse)
+@router.post("/")
 async def create_settings(
     payload: SettingsCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> SettingsResponse:
     require_super_admin(current_user)
 
@@ -45,17 +53,19 @@ async def create_settings(
 
 @router.put(
     "/",
-    response_model=SettingsResponse,
     responses={
         404: {
-            "description": "Settings not found",
+            "description": SETTINGS_NOT_FOUND,
         },
     },
 )
 async def update_settings(
     payload: SettingsCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> SettingsResponse:
     require_super_admin(current_user)
 
@@ -64,7 +74,7 @@ async def update_settings(
     if settings is None:
         raise HTTPException(
             status_code=404,
-            detail="Settings not found",
+            detail=SETTINGS_NOT_FOUND,
         )
 
     updated_settings = await settings_service.update_settings(
