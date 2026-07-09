@@ -15,29 +15,38 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[ReportResponse])
+@router.get("/")
 async def get_reports(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> list[ReportResponse]:
     reports = await report_service.get_reports(db)
     return [ReportResponse.model_validate(report) for report in reports]
 
 
-@router.post("/", response_model=ReportResponse)
+@router.post("/")
 async def create_report(
     payload: ReportCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> ReportResponse:
     report = await report_service.create_report(payload, db)
     return ReportResponse.model_validate(report)
 
 
-@router.get("/search", response_model=list[ReportResponse])
+@router.get("/search")
 async def search_reports(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
     keyword: str = Query(...),
 ) -> list[ReportResponse]:
     reports = await report_service.search_reports(keyword, db)
@@ -47,7 +56,10 @@ async def search_reports(
 @router.get("/export")
 async def export_reports(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> JSONResponse:
     reports = await report_service.get_reports(db)
 
@@ -65,7 +77,6 @@ async def export_reports(
 
 @router.put(
     "/{report_id}",
-    response_model=ReportResponse,
     responses={
         404: {
             "description": "Report not found",
@@ -76,7 +87,10 @@ async def update_report(
     report_id: int,
     payload: ReportCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> ReportResponse:
     report = await report_service.update_report(report_id, payload, db)
 
@@ -100,7 +114,10 @@ async def update_report(
 async def delete_report(
     report_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> dict[str, str]:
     result = await report_service.delete_report(report_id, db)
 
