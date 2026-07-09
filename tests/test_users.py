@@ -2,8 +2,8 @@ import pytest
 from httpx import AsyncClient
 
 TEST_EMAIL = "admin@gmail.com"
-TEST_USER_PASSWORD = "admin123"
-INVALID_TEST_PASSWORD = "incorrect-test-password"
+TEST_LOGIN_SECRET = "admin123"
+INVALID_TEST_SECRET = "incorrect-test-password"
 
 
 @pytest.mark.asyncio
@@ -13,9 +13,10 @@ async def test_login_success(client: AsyncClient) -> None:
         "/api/auth/login",
         json={
             "email": TEST_EMAIL,
-            "password": TEST_USER_PASSWORD,
+            "password": TEST_LOGIN_SECRET,
         },
     )
+
     data = response.json()
 
     assert response.status_code == 200
@@ -31,7 +32,7 @@ async def test_login_wrong_password(client: AsyncClient) -> None:
         "/api/auth/login",
         json={
             "email": TEST_EMAIL,
-            "password": INVALID_TEST_PASSWORD,
+            "password": INVALID_TEST_SECRET,
         },
     )
 
@@ -59,7 +60,7 @@ async def test_login_returns_correct_role(client: AsyncClient) -> None:
         "/api/auth/login",
         json={
             "email": TEST_EMAIL,
-            "password": TEST_USER_PASSWORD,
+            "password": TEST_LOGIN_SECRET,
         },
     )
 
@@ -74,7 +75,7 @@ async def test_get_roles_with_token(client: AsyncClient) -> None:
         "/api/auth/login",
         json={
             "email": TEST_EMAIL,
-            "password": TEST_USER_PASSWORD,
+            "password": TEST_LOGIN_SECRET,
         },
     )
 
@@ -100,7 +101,7 @@ async def test_get_users_with_token(client: AsyncClient) -> None:
         "/api/auth/login",
         json={
             "email": TEST_EMAIL,
-            "password": TEST_USER_PASSWORD,
+            "password": TEST_LOGIN_SECRET,
         },
     )
 
@@ -126,7 +127,7 @@ async def test_permissions_in_login_response(client: AsyncClient) -> None:
         "/api/auth/login",
         json={
             "email": TEST_EMAIL,
-            "password": TEST_USER_PASSWORD,
+            "password": TEST_LOGIN_SECRET,
         },
     )
 
@@ -143,7 +144,7 @@ async def test_get_reports_with_token(client: AsyncClient) -> None:
         "/api/auth/login",
         json={
             "email": TEST_EMAIL,
-            "password": TEST_USER_PASSWORD,
+            "password": TEST_LOGIN_SECRET,
         },
     )
 
