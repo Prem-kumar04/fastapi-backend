@@ -16,14 +16,15 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=TaskResponse)
+@router.post("/")
 async def create_task(
     payload: TaskCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> TaskResponse:
-    print("CURRENT USER =", current_user)
-
     task = await task_service.create_task(
         payload,
         db,
@@ -32,18 +33,24 @@ async def create_task(
     return TaskResponse.model_validate(task)
 
 
-@router.get("/", response_model=list[TaskResponse])
+@router.get("/")
 async def get_tasks(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> list[TaskResponse]:
     tasks = await task_service.get_tasks(db)
-    return [TaskResponse.model_validate(task) for task in tasks]
+
+    return [
+        TaskResponse.model_validate(task)
+        for task in tasks
+    ]
 
 
 @router.get(
     "/{task_id}",
-    response_model=TaskResponse,
     responses={
         404: {
             "description": TASK_NOT_FOUND,
@@ -53,7 +60,10 @@ async def get_tasks(
 async def get_task_by_id(
     task_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> TaskResponse:
     task = await task_service.get_task_by_id(
         task_id,
@@ -71,7 +81,6 @@ async def get_task_by_id(
 
 @router.put(
     "/{task_id}",
-    response_model=TaskResponse,
     responses={
         404: {
             "description": TASK_NOT_FOUND,
@@ -82,7 +91,10 @@ async def update_task(
     task_id: int,
     payload: TaskUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> TaskResponse:
     task = await task_service.get_task_by_id(
         task_id,
@@ -115,10 +127,11 @@ async def update_task(
 async def delete_task(
     task_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> dict[str, str]:
-    print("CURRENT USER =", current_user)
-
     task = await task_service.get_task_by_id(
         task_id,
         db,
