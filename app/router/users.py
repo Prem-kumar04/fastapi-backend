@@ -27,7 +27,10 @@ USER_NOT_FOUND = "User not found"
 )
 async def get_my_profile(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> dict[str, Any]:
     user = await user_service.get_user_by_id(
         current_user["user_id"],
@@ -60,7 +63,10 @@ async def get_my_profile(
 async def update_my_profile(
     payload: ProfileUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> dict[str, str]:
     user = await user_service.get_user_by_id(
         current_user["user_id"],
@@ -83,7 +89,10 @@ async def update_my_profile(
 @router.get("/")
 async def get_users(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> list[dict[str, Any]]:
     require_admin_or_super_admin(current_user)
 
@@ -94,7 +103,10 @@ async def get_users(
 async def create_user(
     payload: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> Any:
     require_super_admin(current_user)
 
@@ -116,7 +128,10 @@ async def update_user(
     user_id: int,
     payload: UserUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> Any:
     require_super_admin(current_user)
 
@@ -149,7 +164,10 @@ async def update_user(
 async def delete_user(
     user_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+        dict[str, Any],
+        Depends(get_current_user),
+    ],
 ) -> dict[str, str]:
     require_super_admin(current_user)
 
