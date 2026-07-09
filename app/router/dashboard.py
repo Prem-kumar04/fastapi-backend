@@ -17,7 +17,10 @@ router = APIRouter(
 @router.get("/stats")
 async def get_dashboard_stats(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: dict[str, Any] = Depends(get_current_user),
+    current_user: Annotated[
+    dict[str, Any],
+    Depends(get_current_user),
+],
 ) -> dict[str, Any]:
     require_admin_or_super_admin(current_user)
 

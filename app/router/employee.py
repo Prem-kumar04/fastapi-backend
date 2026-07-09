@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[EmployeeResponse])
+@router.get("/")
 async def get_employees(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[EmployeeResponse]:
