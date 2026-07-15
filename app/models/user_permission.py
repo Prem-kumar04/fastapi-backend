@@ -1,6 +1,5 @@
-from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy import ForeignKey
 from . import Base
 
 
@@ -18,7 +17,7 @@ class UserPermission(Base):
         nullable=False
     )
 
-    module: Mapped[str]
+    module: Mapped[str] 
 
     view: Mapped[bool] = mapped_column(default=False)
     create: Mapped[bool] = mapped_column(default=False)

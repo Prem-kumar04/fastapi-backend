@@ -12,7 +12,7 @@ from app.schema.user import ProfileUpdate, UserCreate, UserUpdate
 async def create_user(
     payload: UserCreate,
     db: AsyncSession,
-) -> User:
+) -> dict[str, Any]:
     # Find or create role
     role_result = await db.execute(
         select(Role).where(Role.name == payload.role_name)
@@ -28,6 +28,8 @@ async def create_user(
         await db.commit()
         await db.refresh(role)
 
+    role_name = role.name
+
     user = User(
         username=payload.username,
         slug=payload.username.lower(),
@@ -39,13 +41,20 @@ async def create_user(
     )
 
     db.add(user)
+    await db.flush()
+
+    user_id = user.id
+    username = user.username
+    email = user.email
+    first_name = user.first_name
+    last_name = user.last_name
+
     await db.commit()
-    await db.refresh(user)
 
     if payload.permissions:
         for module, perms in payload.permissions.items():
             user_perm = UserPermission(
-                user_id=user.id,
+                user_id=user_id,
                 module=module,
                 view=perms.view,
                 create=perms.create,
@@ -57,7 +66,15 @@ async def create_user(
 
         await db.commit()
 
-    return user
+    return {
+        "id": user_id,
+        "username": username,
+        "email": email,
+        "first_name": first_name,
+        "last_name": last_name,
+        "role_name": role_name,
+    }
+    
 
 
 async def get_user_permissions(
@@ -141,12 +158,7 @@ async def update_user(
     user: User,
     payload: UserUpdate,
     db: AsyncSession,
-) -> User:
-    print("=== UPDATE USER DEBUG ===")
-    print("Payload permissions:", payload.permissions)
-    print("==========================")
-
-    # Find or create role
+) -> dict[str, Any]:
     role_result = await db.execute(
         select(Role).where(Role.name == payload.role_name)
     )
@@ -161,6 +173,8 @@ async def update_user(
         await db.commit()
         await db.refresh(role)
 
+    role_name = role.name
+
     user.username = payload.username
     user.slug = payload.username.lower()
     user.email = payload.email
@@ -168,48 +182,46 @@ async def update_user(
     user.last_name = payload.last_name
     user.role_id = role.id
 
+    await db.flush()
+
+    user_id = user.id
+    username = user.username
+    email = user.email
+    first_name = user.first_name
+    last_name = user.last_name
+
     await db.commit()
-    await db.refresh(user)
 
     if payload.permissions:
-        print("Saving permissions for user:", user.id)
-
         await db.execute(
             delete(UserPermission).where(
-                UserPermission.user_id == user.id
+                UserPermission.user_id == user_id
             )
         )
 
         for module, perms in payload.permissions.items():
-            print(
-                f"Module: {module}, "
-                f"view={perms.view}, "
-                f"create={perms.create}, "
-                f"edit={perms.edit}, "
-                f"delete={perms.delete}, "
-                f"export={perms.export}"
+            db.add(
+                UserPermission(
+                    user_id=user_id,
+                    module=module,
+                    view=perms.view,
+                    create=perms.create,
+                    edit=perms.edit,
+                    delete=perms.delete,
+                    export=perms.export,
+                )
             )
-
-            user_perm = UserPermission(
-                user_id=user.id,
-                module=module,
-                view=perms.view,
-                create=perms.create,
-                edit=perms.edit,
-                delete=perms.delete,
-                export=perms.export,
-            )
-
-            db.add(user_perm)
 
         await db.commit()
 
-        print("Permissions saved!")
-
-    else:
-        print("payload.permissions is empty or None. Nothing was saved.")
-
-    return user
+    return {
+        "id": user_id,
+        "username": username,
+        "email": email,
+        "first_name": first_name,
+        "last_name": last_name,
+        "role_name": role_name,
+    }
 
 
 async def update_profile(

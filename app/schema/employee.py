@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class EmployeeResponse(BaseModel):
@@ -7,3 +7,5 @@ class EmployeeResponse(BaseModel):
     email: str
     department: str
     salary: float
+
+    model_config = ConfigDict(from_attributes=True)
