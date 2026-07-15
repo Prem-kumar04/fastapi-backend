@@ -74,7 +74,7 @@ async def create_user(
         "last_name": last_name,
         "role_name": role_name,
     }
-    
+
 
 
 async def get_user_permissions(

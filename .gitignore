@@ -198,4 +198,4 @@ data/db/*
 # PROD_CHECK: 
 # Exclude Alembic Versions [Only During Dev]
 alembic/versions/*
-# ----- Custom Ignores:END -----
+# ----- Custom Ignores:END -----next-frontend/
